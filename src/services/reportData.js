@@ -25,6 +25,11 @@ export const SQL = {
     WHERE date(created_at) >= date('now', '-6 days')
     GROUP BY day
     ORDER BY day`,
+
+  allOrders: `
+    SELECT id, customer, product, amount, created_at
+    FROM orders
+    ORDER BY created_at DESC`,
 }; // Exported so the exact SQL can be pasted into the README
 
 export function getReportData() {
@@ -35,3 +40,7 @@ export function getReportData() {
     ordersPerDay: db.prepare(SQL.ordersPerDay).all(),
   };
 } // Turns 200 order rows into the four numbers the report needs
+
+export function getAllOrders() {
+  return db.prepare(SQL.allOrders).all();
+} // Every order, newest first, for the long table at the bottom of the PDF

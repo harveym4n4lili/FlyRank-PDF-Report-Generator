@@ -9,6 +9,7 @@
     "dev": "nodemon index.js",
     "seed": "node src/db/seed.js",
     "report:data": "node scripts/printReportData.js",
+    "report:pdf": "node scripts/renderTestPdf.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
