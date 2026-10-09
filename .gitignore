@@ -35,3 +35,6 @@ temp/
 
 # Claude Code
 CLAUDE.md
+
+# Generated data (the seed script is the recipe)
+report.db
