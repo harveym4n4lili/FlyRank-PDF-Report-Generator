@@ -12,4 +12,12 @@ db.exec(`
   )
 `); // Create the orders table on first use
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT,
+    created_at TEXT NOT NULL
+  )
+`); // Report bookkeeping: where each generated PDF lives on disk
+
 export default db;
