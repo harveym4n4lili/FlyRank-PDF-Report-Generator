@@ -30,6 +30,31 @@ export async function generateReport() {
   return getReport(id);
 } // The whole pipeline, run inside the request
 
+let inFlight = null; // The generation currently running, if any
+
+export async function getOrCreateTodaysReport({ force = false } = {}) {
+  if (!force) {
+    const existing = findTodaysReport();
+    if (existing) return { report: existing, created: false }; // Already made today
+
+    if (inFlight) return { report: await inFlight, created: false }; // A double-click arrived mid-render: share that result
+  }
+
+  inFlight = generateReport().finally(() => { inFlight = null; });
+  return { report: await inFlight, created: true };
+} // Idempotency: same request twice on the same day -> one report, one file
+
+function findTodaysReport() {
+  const row = db
+    .prepare(`
+      SELECT id FROM reports
+      WHERE path IS NOT NULL AND date(created_at) = date('now')
+      ORDER BY id DESC
+      LIMIT 1`)
+    .get(); // Dates are stored and compared in UTC
+  return row ? getReport(row.id) : undefined;
+} // Most recent finished report generated today, if any
+
 export function getReportRow(id) {
   return db.prepare('SELECT * FROM reports WHERE id = ? AND path IS NOT NULL').get(id);
 } // Raw row, including the on-disk path; undefined if unknown or not finished

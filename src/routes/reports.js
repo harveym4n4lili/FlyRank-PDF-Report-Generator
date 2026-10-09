@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { generateReport, getReport, getReportRow } from '../services/reports.js';
+import { getOrCreateTodaysReport, getReport, getReportRow } from '../services/reports.js';
 
 const router = Router();
 
@@ -31,7 +31,24 @@ const router = Router();
  * /reports:
  *   post:
  *     summary: Generate a PDF report (query, render, store) - takes a few seconds
+ *     description: Returns today's existing report (200) instead of generating a new one, unless force is true.
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               force:
+ *                 type: boolean
+ *                 example: false
  *     responses:
+ *       200:
+ *         description: A report was already generated today, returns the existing id and link
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Report'
  *       201:
  *         description: Report generated, returns its id and download link
  *         content:
@@ -43,13 +60,14 @@ const router = Router();
  */
 router.post('/', async (req, res) => {
   try {
-    const report = await generateReport();
-    res.status(201).json({ id: report.id, file: report.file });
+    const force = req.body?.force === true; // Body is optional, so guard against it being missing
+    const { report, created } = await getOrCreateTodaysReport({ force });
+    res.status(created ? 201 : 200).json({ id: report.id, file: report.file });
   } catch (error) {
     console.error('Report generation failed:', error);
     res.status(500).json({ error: 'Report generation failed' });
   }
-}); // POST route that runs the whole pipeline inside the request
+}); // POST route that runs the pipeline inside the request, at most once per day unless forced
 
 /**
  * @swagger
