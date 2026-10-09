@@ -1,13 +1,20 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './src/swagger.js';
+import healthRouter from './src/routes/health.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // Serve Swagger UI at /docs
 
 app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('Welcome to the PDF Report Generator API!');
 }); // Root route to test the server
+
+app.use('/health', healthRouter); // Health check route
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
